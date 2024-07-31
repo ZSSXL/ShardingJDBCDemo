@@ -1,0 +1,42 @@
+# 配置数据源
+dataSources:
+  db1: !!com.alibaba.druid.pool.DruidDataSource
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://127.0.0.1:5432/sharding_db_1
+    username: sharding
+    password: sharding
+  db2: !!com.alibaba.druid.pool.DruidDataSource
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://127.0.0.1:5432/sharding_db_2
+    username: sharding
+    password: sharding
+
+# 规则配置
+shardingRule:
+  tables:
+    sjd_user:
+      actualDataNodes: db${1..2}.sjd_user_$->{1..2}
+      databaseStrategy:
+        standard:
+          shardingColumn: user_code
+          # 指定表的分片策略：自定义分片算法
+          preciseAlgorithmClassName: com.zss.sda.algorithm.UUIDShardingAlgorithm
+      tableStrategy:
+        inline:
+          shardingColumn: user_id
+          algorithmExpression: sjd_user_$->{user_id % 2 + 1}
+    sjd_enterprise:
+      actualDataNodes: db${1..2}.sjd_enterprise_$->{1..2}
+      databaseStrategy:
+        standard:
+          shardingColumn: enterprise_code
+          # 指定表的分片策略：自定义分片算法
+          preciseAlgorithmClassName: com.zss.sda.algorithm.UUIDShardingAlgorithm
+      tableStrategy:
+        inline:
+          shardingColumn: enterprise_id
+          algorithmExpression: sjd_enterprise_$->{enterprise_id % 2 + 1}
+# 属性配置
+props:
+  # 开启SQL显示
+  sql.show: ture

@@ -1,0 +1,39 @@
+# 配置数据源
+dataSources:
+  master: !!com.alibaba.druid.pool.DruidDataSource
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://60.205.179.156:5432/sharding_db_1
+    username: sharding
+    password: sharding_pass
+  slave1: !!com.alibaba.druid.pool.DruidDataSource
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://60.205.179.156:5433/sharding_db_1
+    username: sharding
+    password: sharding_pass
+
+# 规则配置
+shardingRule:
+  # 主从配置
+  masterSlaveRules:
+    rw:
+      masterDataSourceName: master
+      slaveDataSourceNames:
+        - slave1
+      loadBalanceAlgorithmType: ROUND_ROBIN
+  tables:
+    sjd_user:
+      actualDataNodes: rw.sjd_user_$->{1..2}
+      tableStrategy:
+        inline:
+          shardingColumn: user_id
+          algorithmExpression: sjd_user_$->{user_id % 2 + 1}
+    sjd_enterprise:
+      actualDataNodes: rw.sjd_enterprise_$->{1..2}
+      tableStrategy:
+        inline:
+          shardingColumn: enterprise_id
+          algorithmExpression: sjd_enterprise_$->{enterprise_id % 2 + 1}
+# 属性配置
+props:
+  # 开启SQL显示
+  sql.show: true

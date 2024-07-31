@@ -1,0 +1,9 @@
+spring:
+  profiles:
+    active: dev # @environment@
+
+server:
+  port: 8890
+
+logging:
+  config: classpath:log/logback-spring.xml

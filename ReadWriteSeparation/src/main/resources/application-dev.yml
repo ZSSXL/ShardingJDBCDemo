@@ -1,0 +1,66 @@
+spring:
+  jpa:
+    database: postgresql
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL9Dialect
+        temp:
+          user_jdbc_metadata_defaults: false
+    open-in-view: false
+
+  # sharding-jdbc配置
+  shardingsphere:
+    # 输出SQL日志
+    props:
+      sql:
+        show: true
+    datasource:
+      # 数据源名称
+      names: master, slave1
+      # 配置数据源
+      master:
+        # 第三方数据库连接池 - druid
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: org.postgresql.Driver
+        url: jdbc:postgresql://60.205.179.156:5432/sharding_db_1
+        username: sharding
+        password: sharding_pass
+      slave1:
+        # 第三方数据库连接池 - druid
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: org.postgresql.Driver
+        url: jdbc:postgresql://60.205.179.156:5433/sharding_db_1
+        username: sharding
+        password: sharding_pass
+    # 数据分片
+    sharding:
+      # 主从配置
+      master-slave-rules:
+        rw:
+          master-data-source-name: master
+          slave-data-source-names: slave1
+      # 配置需要分表操作的表名
+      tables:
+        # 逻辑表名
+        sjd_enterprise:
+          # groovy表达式，配置数据节点
+          actual-data-nodes: rw.sjd_enterprise_$->{1..2}
+          # 分表策略，enterprise_id为偶数操作sjd_enterprise_1，为奇数操作表sjd_enterprise_2
+          table-strategy:
+            inline:
+              # 指定表的分片策略：分片键
+              sharding-column: enterprise_id
+              algorithm-expression: sjd_enterprise_$->{enterprise_id % 2 + 1}
+        # 逻辑表名
+        sjd_user:
+          # groovy表达式W
+          actual-data-nodes: rw.sjd_user_$->{1..2}
+          # 分表策略
+          table-strategy:
+            inline:
+              # 指定表的分片策略：分片键
+              sharding-column: user_id
+              algorithm-expression: sjd_user_$->{user_id % 2 + 1}
